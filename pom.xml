@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!--
+    Modelled on the sibling mysql-sakila-spring-data: Spring Data JPA over an upstream persistence module, a single,
+    parent-less jar. The one difference is where the entities come from: upstream (postgres-demonstration-persistence)
+    publishes mapped superclasses and converters, not entities, so the entities are this project's own, in src/main,
+    extending those superclasses.
+    -->
+  <groupId>com.github.jinahya</groupId>
+  <artifactId>postgresql-demodb-spring-data</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>${project.artifactId}</name>
+  <description>Spring Data for the PostgreSQL Demonstration Database</description>
+  <url>https://github.com/jinahya/${project.artifactId}</url>
+  <inceptionYear>2026</inceptionYear>
+  <organization>
+    <name>Jinahya, Inc.</name>
+    <url>https://jinahya.com</url>
+  </organization>
+
+  <developers>
+    <developer>
+      <id>onacit</id>
+      <name>Kwon, Jin</name>
+      <email>onacit@gmail.com</email>
+      <url>https://github.com/onacit</url>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>Asia/Seoul</timezone>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:git@github.com:jinahya/${project.artifactId}.git</connection>
+    <developerConnection>scm:git:git@github.com:jinahya/${project.artifactId}.git</developerConnection>
+    <url>https://github.com/jinahya/${project.artifactId}</url>
+    <tag>HEAD</tag>
+  </scm>
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/jinahya/${project.artifactId}/issues</url>
+  </issueManagement>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+    <!--
+      As upstream (postgres-demonstration-persistence): main sources at release 17, tests at 25. 17 is upstream's
+      floor, and Boot 4's baseline, so a consumer on 17 can use this jar as it can upstream's. The tests are not
+      published, so they take the current LTS.
+      -->
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>${maven.compiler.source}</maven.compiler.target>
+    <maven.compiler.release>${maven.compiler.target}</maven.compiler.release>
+    <maven.compiler.testSource>25</maven.compiler.testSource>
+    <maven.compiler.testTarget>${maven.compiler.testSource}</maven.compiler.testTarget>
+    <maven.compiler.testRelease>${maven.compiler.testSource}</maven.compiler.testRelease>
+    <!--
+      Keep parameter names in the class files, as upstream does: method validation reports them
+      (findAllByStatus.status, not .arg0), and Spring Data binds named parameters by them.
+      -->
+    <maven.compiler.parameters>true</maven.compiler.parameters>
+
+    <!--
+      Boot 4, not 3: it manages jakarta.persistence-api 3.2, which the upstream mappings are written against
+      (upstream: persistence.version 3.2, jakarta.jakartaee-bom 11.0.0). Boot 3.x manages 3.1. Do not downgrade.
+      -->
+    <!-- https://docs.spring.io/spring-boot/appendix/dependency-versions/coordinates.html -->
+    <version.org.springframework.boot>4.1.2</version.org.springframework.boot>
+
+    <!-- Local SNAPSHOT only: `./mvnw -DskipTests install` the sibling checkout to pick up a change there. -->
+    <version.postgres-demonstration-persistence>0.0.1-SNAPSHOT</version.postgres-demonstration-persistence>
+
+    <!--
+      The versions below are the ones upstream's pom names (version.* properties of the same name), so that what
+      compiles here against its test-companion jar is what that jar was compiled against.
+      -->
+    <!-- https://central.sonatype.com/artifact/io.github.jinahya/jinahya-persistence-test-utils/versions -->
+    <version.jinahya-persistence>0.6.7</version.jinahya-persistence>
+    <!-- https://central.sonatype.com/artifact/uk.co.jemos.podam/podam/versions -->
+    <version.uk.co.jemos.podam>8.0.2.RELEASE</version.uk.co.jemos.podam>
+    <!-- https://central.sonatype.com/artifact/org.projectlombok/lombok/versions -->
+    <version.org.projectlombok>1.18.48</version.org.projectlombok>
+    <!-- https://jdbc.postgresql.org/ -->
+    <!-- https://central.sonatype.com/artifact/org.postgresql/postgresql/versions -->
+    <version.org.postgresql>42.7.14</version.org.postgresql>
+    <!-- https://central.sonatype.com/artifact/com.h2database/h2/versions -->
+    <version.com.h2database>2.5.252</version.com.h2database>
+
+    <!--
+      Versions Boot manages too, pinned to the ones every other project is on (PROJECTS_VERSIONS.asciidoc at the book's
+      root): JUnit and Mockito by importing their BOMs before Boot's, Logback and AssertJ by direct entries.
+      -->
+    <!-- https://central.sonatype.com/artifact/org.junit/junit-bom/versions -->
+    <version.org.junit>6.1.3</version.org.junit>
+    <!-- https://central.sonatype.com/artifact/org.mockito/mockito-bom/versions -->
+    <version.org.mockito>5.24.0</version.org.mockito>
+    <!-- https://central.sonatype.com/artifact/ch.qos.logback/logback-classic/versions -->
+    <version.ch.qos.logback>1.6.5</version.ch.qos.logback>
+    <!-- https://central.sonatype.com/artifact/org.assertj/assertj-core/versions -->
+    <version.org.assertj>4.0.0-M1</version.org.assertj>
+    <!-- https://central.sonatype.com/artifact/io.github.jinahya/jinahya-object-randomizer/versions -->
+    <version.jinahya-object-randomizer>0.0.7</version.jinahya-object-randomizer>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <!--
+        Imported, not inherited: this pom is parent-less. Every Spring, Boot and Hibernate version comes from here,
+        so dependencies on them carry no <version>. A direct entry below beats an imported one, which is how the
+        pins that follow it work.
+        -->
+      <!-- Before Boot's, so that these win over the versions Boot's import brings. -->
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>${version.org.junit}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-bom</artifactId>
+        <version>${version.org.mockito}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${version.org.springframework.boot}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>${version.ch.qos.logback}</version>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-core</artifactId>
+        <version>${version.ch.qos.logback}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.assertj</groupId>
+        <artifactId>assertj-core</artifactId>
+        <version>${version.org.assertj}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.jinahya</groupId>
+        <artifactId>jinahya-object-randomizer</artifactId>
+        <version>${version.jinahya-object-randomizer}</version>
+      </dependency>
+
+      <!-- The upstream jar: the mapped superclasses, their static metamodel, and the converters. -->
+      <dependency>
+        <groupId>io.github.jinahya</groupId>
+        <artifactId>postgres-demonstration-persistence</artifactId>
+        <version>${version.postgres-demonstration-persistence}</version>
+      </dependency>
+      <!--
+        Its randomizers and persisters, published as a second jar of the same artifact classified test-companion; a
+        classifier needs an entry of its own. The jar brings none of its dependencies, so podam and
+        jinahya-persistence-test-utils are declared below.
+        -->
+      <dependency>
+        <groupId>io.github.jinahya</groupId>
+        <artifactId>postgres-demonstration-persistence</artifactId>
+        <version>${version.postgres-demonstration-persistence}</version>
+        <classifier>test-companion</classifier>
+      </dependency>
+
+      <dependency>
+        <groupId>io.github.jinahya</groupId>
+        <artifactId>jinahya-persistence-utils</artifactId>
+        <version>${version.jinahya-persistence}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.jinahya</groupId>
+        <artifactId>jinahya-persistence-test-utils</artifactId>
+        <version>${version.jinahya-persistence}</version>
+      </dependency>
+      <dependency>
+        <groupId>uk.co.jemos.podam</groupId>
+        <artifactId>podam</artifactId>
+        <version>${version.uk.co.jemos.podam}</version>
+      </dependency>
+
+      <!--
+        Pinned over the BOM's 1.18.46, which fails on JDK 27 (ExceptionInInitializerError:
+        com.sun.tools.javac.tree.EndPosTable), and to upstream's. Drop the pin once the BOM manages 1.18.48 or later.
+        -->
+      <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>${version.org.projectlombok}</version>
+      </dependency>
+      <!--
+        Pinned over the BOM's to upstream's, so that the integration tests here hit the demonstration database
+        through the driver upstream's own do, and the unit tests run the same H2 (MODE=PostgreSQL) upstream generates
+        its schema into.
+        -->
+      <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <version>${version.org.postgresql}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.h2database</groupId>
+        <artifactId>h2</artifactId>
+        <version>${version.com.h2database}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <!--
+      main =======================================================================================
+      The mapped superclasses the entities of this project extend, their static metamodel (MappedFlight_, ...), and
+      the converters the mappings name. Upstream keeps its own entities in its test sources, so none arrive from the
+      jar; the ones here, in the sibling package of the repositories, are copies of them. Upstream's persistence.xml
+      is test-only too, so this project supplies its own datasource and JPA configuration. Its jakarta.* and driver
+      dependencies are provided there, so none arrive transitively.
+      -->
+    <dependency>
+      <groupId>io.github.jinahya</groupId>
+      <artifactId>postgres-demonstration-persistence</artifactId>
+    </dependency>
+    <!--
+      The plain artifacts, not spring-boot-starter-data-jpa: the repositories need Spring Data JPA, not Boot, so the
+      published pom names no starter. It is provided; a consumer brings its own Spring Data JPA and JPA provider. The
+      starter reaches the tests through spring-boot-starter-data-jpa-test.
+
+      jakarta.persistence-api is declared, provided, since the entities are mapped with it, and main code may use JPA
+      types itself; spring-data-jpa does not bring it.
+      -->
+    <dependency>
+      <groupId>org.springframework.data</groupId>
+      <artifactId>spring-data-jpa</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.persistence</groupId>
+      <artifactId>jakarta.persistence-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <!--
+      Bean Validation constraints on repository method parameters (@NotBlank, @Positive, ...), and the ones the
+      mapped superclasses carry. The API only, provided: enforcing them takes a provider and @Validated, which the
+      application brings.
+      -->
+    <dependency>
+      <groupId>jakarta.validation</groupId>
+      <artifactId>jakarta.validation-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <!--
+      Main and test sources alike. Provided: Lombok is a compile-time tool only, so it is neither packaged nor passed
+      on to consumers of this jar.
+      -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <!--
+      test starters ==============================================================================
+      Boot 4 pairs each starter with a spring-boot-starter-<technology>-test, and each of those brings
+      spring-boot-starter-test, so that one is not declared.
+      -->
+    <!-- @DataJpaTest, @AutoConfigureTestDatabase, TestEntityManager -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!--
+      Hibernate Validator, and Boot's method validation, which enforces the repositories' constraints; through
+      spring-boot-starter-validation, which this brings.
+      -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!--
+      test runtime ===============================================================================
+      The driver for the demonstration database upstream brings up (compose.yaml there; localhost:5432/demo). Test
+      scope, so consumers get no driver.
+      -->
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!--
+      The embedded database the @DataJpaTest slices run on, in PostgreSQL mode, through the h2 profile
+      (src/test/resources/application-h2.yaml).
+      -->
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- test tools ================================================================================= -->
+    <!-- The upstream randomizers and persisters. -->
+    <dependency>
+      <groupId>io.github.jinahya</groupId>
+      <artifactId>postgres-demonstration-persistence</artifactId>
+      <classifier>test-companion</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.github.jinahya</groupId>
+      <artifactId>jinahya-persistence-utils</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.github.jinahya</groupId>
+      <artifactId>jinahya-persistence-test-utils</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- What the upstream randomizers fill instances with. -->
+    <dependency>
+      <groupId>uk.co.jemos.podam</groupId>
+      <artifactId>podam</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <!-- https://central.sonatype.com/artifact/org.apache.maven.plugins/maven-compiler-plugin/versions -->
+          <version>3.16.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <!-- https://central.sonatype.com/artifact/org.apache.maven.plugins/maven-enforcer-plugin/versions -->
+          <version>3.6.3</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <!--
+        Two processors on the processor path of both executions, default-compile and default-testCompile: Lombok,
+        and hibernate-processor, which generates the static metamodel of the entities of the main sources (Flight_,
+        ..., each extending upstream's MappedFlight_), which the Specifications name attributes through. Each <path>
+        takes its version from dependencyManagement (annotationProcessorPathsUseDepMgmt): Lombok from the pin above,
+        the processor from Boot's BOM, in step with the Hibernate the BOM brings.
+        -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <annotationProcessorPathsUseDepMgmt>true</annotationProcessorPathsUseDepMgmt>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+            </path>
+            <path>
+              <groupId>org.hibernate.orm</groupId>
+              <artifactId>hibernate-processor</artifactId>
+            </path>
+          </annotationProcessorPaths>
+        </configuration>
+      </plugin>
+      <!--
+        Dependency convergence is a build defect, not a warning, as upstream treats it. Resolve jakarta.* at the
+        platform level (the Boot BOM) instead of pinning individual API artifacts.
+        -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>enforce-dependency-convergence</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <dependencyConvergence/>
+              </rules>
+            </configuration>
+          </execution>
+          <execution>
+            <!-- The build JDK: the tests compile at release 25 above; the main sources at 17, through the release flag. -->
+            <id>enforce-require-java-version</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireJavaVersion>
+                  <version>[25,)</version>
+                </requireJavaVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

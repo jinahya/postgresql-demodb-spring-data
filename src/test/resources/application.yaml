@@ -1,0 +1,60 @@
+#
+# Test configuration for postgresql-demodb-spring-data: the demonstration database that postgres-demonstration-persistence
+# brings up, not an in-memory stand-in.
+#
+# Start it from the sibling checkout, which owns the compose file:
+#
+#     cd ../postgresql-demodb-persistence && ./_docker_compose_up.sh
+#
+# That runs onacit/postgresql-demodb:18-alpine-3m as the container `postgresql-demodb`, publishes 5432, and loads the
+# demonstration database dump (database `demo`, schema `bookings`, which is the search_path) on first start; Ctrl-C
+# takes it down again.
+#
+# These are the same coordinates upstream's own integration-test persistence unit uses
+# (../postgresql-demodb-persistence/src/test/resources/META-INF/persistence.xml, `demonstration-it`); keep the two in
+# step.
+#
+spring:
+  datasource:
+    # stringtype=unspecified: a String bound for a tstzrange, point, jsonb, integer[] or interval column is sent
+    # untyped, so that the server casts it; see upstream's README.md, "Column types the providers differ on".
+    url: jdbc:postgresql://localhost:5432/demo?stringtype=unspecified
+    # postgres, as upstream's demonstration-it unit connects; POSTGRES_PASSWORD of its compose.yaml.
+    username: postgres
+    password: ${DEMODB_PASSWORD:password}
+    # Hikari can infer this from the URL; named anyway so a missing driver on the test classpath fails as "driver not
+    # found" rather than as a pool timeout.
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      # The session's time zone, UTC as the container's own psql sessions have it, so that a month or a day a query
+      # takes out of a timestamptz (EXTRACT(MONTH FROM f.scheduledDeparture)) is the one the exercises' SQL shows.
+      # The driver sets the session's TimeZone to the JVM's as a startup parameter, which the server applies after
+      # any `options=-c TimeZone=...` of the URL, so the URL cannot do this; a statement on each new connection can.
+      connection-init-sql: SET TIME ZONE 'UTC'
+
+  jpa:
+    hibernate:
+      # The sample data is loaded by the image and is the fixture the tests read. Nothing here may touch the schema.
+      # `none` is already the default for a non-embedded datasource; spelled out because the cost of getting it wrong
+      # is the database.
+      ddl-auto: none
+    properties:
+      hibernate:
+        # Named rather than detected. Hibernate would otherwise pick the dialect from the JDBC metadata of a first
+        # connection, and when that connection fails (no container on 5432) it logs the real cause as HHH000342 and
+        # throws "Unable to determine Dialect" instead. With the dialect named, a missing database fails at the first
+        # query with the PostgreSQL error itself.
+        # NOTE: this file follows a @DataJpaTest onto H2 too, where this dialect is wrong; such a test has to override
+        # it (see _Repository_DataJpaTest_Configuration).
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        highlight_sql: true
+    # No web layer in these tests: a lazy association touched outside a transaction should fail loudly instead of
+    # quietly opening a session to satisfy it.
+    open-in-view: false
+    # Deliberately not `show-sql: true`, which writes straight to System.out and would print every statement twice
+    # next to the org.hibernate.SQL logger that logback-spring.xml turns on.
+    show-sql: false
+
+# Log levels live in logback-spring.xml, next to this file, not under logging.level here. Boot would lay levels set
+# here over that file's; keep them in one place.
