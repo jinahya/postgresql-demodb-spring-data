@@ -25,7 +25,7 @@ Spring Data repositories over the Jakarta Persistence mappings of
 
 ## Upstream, and the entities
 
-The sibling checkout `../postgresql-demodb-persistence` publishes, at `0.0.1-SNAPSHOT`, a jar of **mapped
+The upstream checkout `../../postgresql-demodb-persistence` publishes, at `0.0.1-SNAPSHOT`, a jar of **mapped
 superclasses, their generated static metamodel (`MappedFlight_`, ...) and two converters**
 (`IntegerListArrayConverter` for `integer[]`, `IntervalConverter` for `interval`), and a second jar of the same
 artifact classified `test-companion`, holding the `*_Randomizer` and `*_Persister` classes compiled with its tests,
@@ -73,7 +73,7 @@ after a change upstream, run `./mvnw -DskipTests install` there before building 
   upstream's exercises show; a derived query compares the instants themselves and does not care. The URL's
   `options=-c TimeZone=UTC` cannot do this: the driver sends the JVM's zone as a startup parameter, which the server
   applies after the options.
-- **Exercises.** Upstream's `../postgresql-demodb-persistence/EXERCISES.asciidoc` (`EXERCISES.yaml` is its
+- **Exercises.** Upstream's `../../postgresql-demodb-persistence/EXERCISES.asciidoc` (`EXERCISES.yaml` is its
   registry) is the context, not a contract: for each repository, the Basic and the Intermediate pick of the
   exercise's section become one method each, the exercise id (`DEMODB_FLIGHTS_I_01`) named in the method's javadoc,
   and one `@Nested` test class per method in both test classes. The `SCHEMA` section is not answered.
@@ -88,7 +88,7 @@ after a change upstream, run `./mvnw -DskipTests install` there before building 
 - Identifiers are assigned (`airplaneCode`, `airportCode`, `bookRef`, `ticketNo`, the composite ones), except
   `flights.flight_id`, which is `IDENTITY`. `Route` has no key of its own in the schema; its `@EmbeddedId` is
   `RouteId` (`routeNo`, `validity`), and the inherited `routeNo`/`validity` attributes are read-only there.
-- Read `../postgresql-demodb-persistence/README.md` before touching anything about the mappings.
+- Read `../../postgresql-demodb-persistence/README.md` before touching anything about the mappings.
 
 ## Build
 
@@ -108,7 +108,7 @@ Surefire's default includes do not match `*IT`, and no failsafe plugin is config
 the `*_SpringBootIT` classes; run them explicitly with `-Dtest`.
 
 **The integration tests need the demonstration database container** that upstream owns: run
-`../postgresql-demodb-persistence/_docker_compose_up.sh` (Ctrl-C takes it down again, with its data). It runs
+`../../postgresql-demodb-persistence/_docker_compose_up.sh` (Ctrl-C takes it down again, with its data). It runs
 `onacit/postgresql-demodb:18-alpine-3m` as the container `postgresql-demodb` on `localhost:5432`, database `demo`,
 user `postgres`, password `password` (`DEMODB_PASSWORD` overrides it), with three months of flights loaded on first
 start, which takes about a minute. `src/test/resources/application.yaml` connects there with `ddl-auto: none` and

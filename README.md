@@ -27,7 +27,7 @@ The upstream jar, and its `test-companion` jar of randomizers and persisters, ar
 locally. Install them first:
 
 ```sh
-(cd ../postgresql-demodb-persistence && ./mvnw -DskipTests install)
+(cd ../../postgresql-demodb-persistence && ./mvnw -DskipTests install)
 ```
 
 ## Build
@@ -44,7 +44,7 @@ the container that upstream provides, which serves `demo` on `localhost:5432` as
 months of flights loaded, then name the tests:
 
 ```sh
-../postgresql-demodb-persistence/_docker_compose_up.sh                           # Ctrl-C takes it down
+../../postgresql-demodb-persistence/_docker_compose_up.sh                           # Ctrl-C takes it down
 mvn -Dtest='*_SpringBootIT' -Dsurefire.failIfNoSpecifiedTests=false test
 ```
 

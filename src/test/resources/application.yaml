@@ -4,14 +4,14 @@
 #
 # Start it from the sibling checkout, which owns the compose file:
 #
-#     cd ../postgresql-demodb-persistence && ./_docker_compose_up.sh
+#     cd ../../postgresql-demodb-persistence && ./_docker_compose_up.sh
 #
 # That runs onacit/postgresql-demodb:18-alpine-3m as the container `postgresql-demodb`, publishes 5432, and loads the
 # demonstration database dump (database `demo`, schema `bookings`, which is the search_path) on first start; Ctrl-C
 # takes it down again.
 #
 # These are the same coordinates upstream's own integration-test persistence unit uses
-# (../postgresql-demodb-persistence/src/test/resources/META-INF/persistence.xml, `demonstration-it`); keep the two in
+# (../../postgresql-demodb-persistence/src/test/resources/META-INF/persistence.xml, `demonstration-it`); keep the two in
 # step.
 #
 spring:
