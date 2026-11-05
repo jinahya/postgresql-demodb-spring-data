@@ -40,7 +40,7 @@ mvn -Dtest=FlightRepository_DataJpaTest test
 ### Integration tests
 
 The `*_SpringBootIT` classes run against the real demonstration database and are not run by `install`/`test`. Start
-the container that upstream provides, which serves `demo` on `localhost:5432` as `postgres` / `password` with three
+the container that upstream provides, which serves `demo` on `localhost:5432` as `postgres` / `Passw0rd!` with three
 months of flights loaded, then name the tests:
 
 ```sh

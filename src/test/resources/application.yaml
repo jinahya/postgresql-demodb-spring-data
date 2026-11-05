@@ -21,7 +21,7 @@ spring:
     url: jdbc:postgresql://localhost:5432/demo?stringtype=unspecified
     # postgres, as upstream's demonstration-it unit connects; POSTGRES_PASSWORD of its compose.yaml.
     username: postgres
-    password: ${DEMODB_PASSWORD:password}
+    password: ${DEMODB_PASSWORD:Passw0rd!}
     # Hikari can infer this from the URL; named anyway so a missing driver on the test classpath fails as "driver not
     # found" rather than as a pool timeout.
     driver-class-name: org.postgresql.Driver

@@ -110,7 +110,7 @@ the `*_SpringBootIT` classes; run them explicitly with `-Dtest`.
 **The integration tests need the demonstration database container** that upstream owns: run
 `../../postgresql-demodb-persistence/_docker_compose_up.sh` (Ctrl-C takes it down again, with its data). It runs
 `onacit/postgresql-demodb:18-alpine-3m` as the container `postgresql-demodb` on `localhost:5432`, database `demo`,
-user `postgres`, password `password` (`DEMODB_PASSWORD` overrides it), with three months of flights loaded on first
+user `postgres`, password `Passw0rd!` (`DEMODB_PASSWORD` overrides it), with three months of flights loaded on first
 start, which takes about a minute. `src/test/resources/application.yaml` connects there with `ddl-auto: none` and
 `PostgreSQLDialect` named outright. Never let a test generate DDL against it. A `@SpringBootTest` that runs no query
 still passes with no database up, since the dialect is named; only a query proves the connection.
