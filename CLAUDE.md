@@ -73,7 +73,7 @@ after a change upstream, run `./mvnw -DskipTests install` there before building 
   upstream's exercises show; a derived query compares the instants themselves and does not care. The URL's
   `options=-c TimeZone=UTC` cannot do this: the driver sends the JVM's zone as a startup parameter, which the server
   applies after the options.
-- **Exercises.** Upstream's `../../postgresql-demodb-persistence/EXERCISES.asciidoc` (`EXERCISES.yaml` is its
+- **Exercises.** Upstream's `../../postgresql-demodb-persistence/src/test/sql-exercises/EXERCISES.asciidoc` (`EXERCISES.yaml` is its
   registry) is the context, not a contract: for each repository, the Basic and the Intermediate pick of the
   exercise's section become one method each, the exercise id (`DEMODB_FLIGHTS_I_01`) named in the method's javadoc,
   and one `@Nested` test class per method in both test classes. The `SCHEMA` section is not answered.
@@ -188,7 +188,7 @@ Save through the repository or the fixtures, not `entityManager().persist(...)`,
 ### `_SpringBootIT`: fixtures are existing rows of the actual database
 
 An integration test **reads the sample data; it never fabricates rows**. The expected rows are the ones upstream's
-`src/test/sql/<table>_exercises_0N_<level>.sql` files show in their comments, from the `3m` edition of the dump;
+`src/test/sql-exercises/<table>/0N_<level>.sql` files show in their comments, from the `3m` edition of the dump;
 assert the first rows and the total where a list is long. A test that must write does so inside `@Transactional`,
 so it is rolled back; nothing a test does may outlive it in the demonstration database.
 

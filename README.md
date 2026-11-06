@@ -54,7 +54,7 @@ time zone is UTC, as the container's own `psql` sessions have it, so a month or 
 
 ## The exercises
 
-Upstream's [EXERCISES.asciidoc](https://github.com/jinahya/postgresql-demodb-persistence/blob/develop/EXERCISES.asciidoc)
+Upstream's [EXERCISES.asciidoc](https://github.com/jinahya/postgresql-demodb-persistence/blob/develop/src/test/sql-exercises/EXERCISES.asciidoc)
 states the exercises on the installed data, each with an id (`DEMODB_FLIGHTS_B_01`, ...). Each repository here
 answers the Basic and the Intermediate pick of its section, one method per exercise, the id named in the method's
 javadoc.
