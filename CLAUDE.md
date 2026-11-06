@@ -122,9 +122,10 @@ Each is commented in `pom.xml`:
 - **Spring Boot 4.x (`4.1.2`), not 3.x.** Boot 4 manages `jakarta.persistence-api` 3.2, which the upstream mappings are
   written against. Do not downgrade to dodge a problem.
 - **`spring-boot-dependencies` is imported, not inherited** (the pom is parent-less). Every Spring / Boot / Hibernate
-  version comes from the BOM; declare those with no `<version>`. Direct `dependencyManagement` entries beat the BOM,
-  which is how the pins work: Lombok `1.18.48` (the BOM's breaks on newer JDKs), and `postgresql` and `h2` at
-  upstream's versions, so the tests hit the same driver and the same H2 upstream generates its schema into.
+  version comes from the BOM; declare those with no `<version>`. A direct `dependencyManagement` entry is only for what
+  Boot does not manage. Lombok, the JDBC driver, H2, JUnit, Mockito, AssertJ and Logback are at Boot's versions: nothing
+  is imported before Boot's BOM, and no entry pins over it, since a -data project is aligned by its platform and the
+  platform is what moves (PROJECTS_VERSIONS.asciidoc of jakarta-persistence-applied-book).
 - **`hibernate-processor` is on the processor path** of both compile executions, from the BOM's version, to generate
   the entities' static metamodel (`Flight_`, ...); the Hibernate it generates against is the BOM's, one patch level
   above upstream's, which the metamodel does not mind.
